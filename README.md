@@ -9,16 +9,25 @@ Upload files and images to Plone using `multipart/form-data` instead of base64-e
 ## What it does
 
 By default, Volto uploads binary content (files and images) by reading the file
-into a base64 string and embedding it inside a JSON request body. This has two
+into a base64 string and embedding it inside a JSON request body. This has three
 costs:
 
 - **~33% larger payloads** — base64 inflates the binary by a third over the wire.
-- **High memory usage** — the whole file is held in memory as a base64 string on
-  the client, encoded into JSON, then decoded again on the server.
+- **High client memory usage** — the whole file is held in memory as a base64
+  string on the client and encoded into JSON.
+- **High server memory usage** — to decode base64 the server must read the
+  *entire* JSON request body into RAM and convert it in one go. For large files
+  this means a multiple of the file size allocated at once, and the upload can
+  fail (or destabilize the instance) when the file does not fit in memory.
 
 This add-on switches every content-creation upload path to
-`multipart/form-data`, sending the binary as-is. Once installed it is **always
-active** — there is no feature flag.
+`multipart/form-data`, sending the binary as-is. With a backend that supports it
+(see below), the server **does not hold the whole file in RAM and does not run a
+base64 decode in memory**: the multipart file part is consumed as a file-like
+stream (Zope spools it to a temporary file on disk during request parsing) and
+written to blob storage from there — so server memory stays bounded regardless of
+file size. Once installed the add-on is **always active** — there is no feature
+flag.
 
 ### How it works
 
