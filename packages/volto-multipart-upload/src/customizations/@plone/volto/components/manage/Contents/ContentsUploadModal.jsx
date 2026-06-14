@@ -1,3 +1,18 @@
+/**
+ * Shadowed from @plone/volto components/manage/Contents/ContentsUploadModal.jsx
+ * (Volto 19.1.4).
+ *
+ * Modifications introduced by volto-multipart-upload:
+ * - Replaced the base64 JSON upload (readAsDataURL + dispatch(createContent))
+ *   with direct multipart/form-data uploads via `uploadFileMultipart`, passing
+ *   the File objects as-is and avoiding the base64 round-trip in memory.
+ * - Removed the Redux subrequest plumbing (createContent import, useDispatch
+ *   subrequest selectors, usePrevious, SUBREQUEST, the useEffect watching
+ *   request completion) in favour of local `uploading`/`uploadedFiles` state.
+ * - `readAsDataURL` is kept only in `onDrop`, to build image previews.
+ *
+ * Keep this file in sync when upgrading Volto.
+ */
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
